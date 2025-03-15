@@ -1,0 +1,29 @@
+name: Build RunImage
+
+on:
+  schedule:
+  - cron: "0 4 * * *"
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: build
+      run: |
+        sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns <<<0
+        chmod a+x ./create-runimage.sh
+        ./create-runimage.sh
+
+    - uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        title: Continous Build
+        automatic_release_tag: continuous
+        prerelease: false
+        files: |
+          runimage-x86_64
